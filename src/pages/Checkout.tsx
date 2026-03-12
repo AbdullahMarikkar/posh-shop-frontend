@@ -1,16 +1,9 @@
-import React, { useState } from "react";
-import {
-  Typography,
-  Box,
-  Card,
-  TextField,
-  Button,
-  Divider,
-  Alert,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
-import { useNavigate } from "react-router-dom";
-import { useCartStore } from "../store/useCartStore";
+import React, { useState } from 'react';
+import { Typography, Box, Card, TextField, Button, Divider, Alert } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import { CheckCircleRounded, ArrowBackRounded } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useCartStore } from '../store/useCartStore';
 
 export const Checkout = () => {
   const navigate = useNavigate();
@@ -23,7 +16,6 @@ export const Checkout = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
@@ -33,22 +25,25 @@ export const Checkout = () => {
 
   if (isSuccess) {
     return (
-      <Box textAlign="center" py={10}>
-        <Alert severity="success" sx={{ mb: 4, display: "inline-flex" }}>
-          Order placed successfully!
-        </Alert>
-        <Typography variant="h4" gutterBottom>
-          Thank you for your purchase.
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          py: 12,
+          gap: 3,
+          textAlign: 'center',
+        }}
+      >
+        <CheckCircleRounded sx={{ fontSize: 80, color: 'primary.main' }} />
+        <Typography variant="h4" fontWeight="bold" color="text.primary">
+          Order Placed Successfully!
         </Typography>
-        <Typography variant="body1" color="text.secondary" mb={4}>
-          You will receive an email confirmation shortly.
+        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 400 }}>
+          Thank you for shopping with Posh Shop. You will receive a confirmation email shortly.
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/")}
-        >
-          Return to Store
+        <Button variant="contained" color="primary" size="large" onClick={() => navigate('/')}>
+          Continue Shopping
         </Button>
       </Box>
     );
@@ -57,15 +52,8 @@ export const Checkout = () => {
   if (items.length === 0) {
     return (
       <Box textAlign="center" py={10}>
-        <Typography variant="h5" gutterBottom>
-          You have no items in your order.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/")}
-          sx={{ mt: 2 }}
-        >
+        <Typography variant="h5" gutterBottom>Your cart is empty.</Typography>
+        <Button variant="contained" color="primary" onClick={() => navigate('/')} sx={{ mt: 2 }}>
           Return to Store
         </Button>
       </Box>
@@ -74,104 +62,107 @@ export const Checkout = () => {
 
   return (
     <Box>
-      <Typography variant="h3" component="h1" gutterBottom fontWeight="bold">
+      <Button
+        variant="text"
+        startIcon={<ArrowBackRounded />}
+        onClick={() => navigate('/cart')}
+        sx={{ mb: 3, color: 'text.secondary' }}
+      >
+        Back to Cart
+      </Button>
+      <Typography variant="h3" component="h1" fontWeight="bold" gutterBottom color="text.primary">
         Checkout
       </Typography>
 
-      <Grid container spacing={4} sx={{ mt: 2 }}>
+      <Grid container spacing={4} sx={{ mt: 1 }}>
+        {/* Form */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card sx={{ p: 4 }}>
+          <Card sx={{ p: { xs: 3, md: 4 } }}>
             <Typography variant="h5" fontWeight="bold" gutterBottom>
-              Shipping Information
+              Shipping Details
             </Typography>
             <Divider sx={{ mb: 3 }} />
             <form onSubmit={handleSubmit}>
-              <Grid container spacing={3}>
+              <Grid container spacing={2.5}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField required fullWidth label="First Name" />
+                  <TextField required fullWidth label="First Name" autoComplete="given-name" />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField required fullWidth label="Last Name" />
+                  <TextField required fullWidth label="Last Name" autoComplete="family-name" />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <TextField
-                    required
-                    fullWidth
-                    label="Email Address"
-                    type="email"
-                  />
+                  <TextField required fullWidth label="Email Address" type="email" autoComplete="email" />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <TextField required fullWidth label="Address Line 1" />
+                  <TextField required fullWidth label="Delivery Address" autoComplete="street-address" />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField required fullWidth label="City" />
+                  <TextField required fullWidth label="City" autoComplete="address-level2" />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField required fullWidth label="Zip / Postal Code" />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    required
-                    fullWidth
-                    label="Card Number"
-                    placeholder="**** **** **** ****"
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <TextField required fullWidth label="MM/YY" />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <TextField required fullWidth label="CVC" />
+                  <TextField required fullWidth label="Postal Code" autoComplete="postal-code" />
                 </Grid>
               </Grid>
 
-              <Box mt={4} display="flex" justifyContent="space-between">
-                <Button variant="outlined" onClick={() => navigate("/cart")}>
-                  Back to Cart
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Processing..." : `Pay $${total.toFixed(2)}`}
-                </Button>
-              </Box>
+              <Typography variant="h5" fontWeight="bold" sx={{ mt: 4, mb: 1 }}>
+                Payment Details
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+
+              <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+                Payment processing is handled securely by our payment service.
+              </Alert>
+
+              <Grid container spacing={2.5}>
+                <Grid size={{ xs: 12 }}>
+                  <TextField required fullWidth label="Cardholder Name" autoComplete="cc-name" />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField required fullWidth label="Card Number" placeholder="**** **** **** ****" autoComplete="cc-number" />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField required fullWidth label="Expiry (MM/YY)" autoComplete="cc-exp" />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField required fullWidth label="CVC" autoComplete="cc-csc" />
+                </Grid>
+              </Grid>
+
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                size="large"
+                fullWidth
+                disabled={isSubmitting}
+                sx={{ mt: 4, py: 1.8, fontSize: '1.05rem' }}
+              >
+                {isSubmitting ? 'Processing Payment…' : `Pay $${total.toFixed(2)}`}
+              </Button>
             </form>
           </Card>
         </Grid>
 
+        {/* Summary */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card sx={{ p: 3, position: "sticky", top: 20 }}>
+          <Card sx={{ p: 3, position: 'sticky', top: 88 }}>
             <Typography variant="h5" fontWeight="bold" gutterBottom>
               Order Summary
             </Typography>
             <Divider sx={{ mb: 2 }} />
 
-            <Box mb={3} sx={{ maxHeight: 300, overflow: "auto" }}>
+            <Box sx={{ maxHeight: 300, overflow: 'auto', mb: 2 }}>
               {items.map((item) => (
-                <Box key={item.product.id} display="flex" mb={2}>
+                <Box key={item.product.id} display="flex" alignItems="center" mb={2} gap={1.5}>
                   <Box
                     component="img"
                     src={item.product.imageUrl}
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      objectFit: "cover",
-                      borderRadius: 1,
-                      mr: 2,
-                    }}
+                    alt={item.product.name}
+                    sx={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 1.5 }}
                   />
                   <Box flex={1}>
-                    <Typography variant="body2" fontWeight="bold">
-                      {item.product.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Qty: {item.quantity}
-                    </Typography>
+                    <Typography variant="body2" fontWeight={600} noWrap>{item.product.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">Qty: {item.quantity}</Typography>
                   </Box>
                   <Typography variant="body2" fontWeight="bold">
                     ${(item.product.price * item.quantity).toFixed(2)}
@@ -182,20 +173,16 @@ export const Checkout = () => {
 
             <Divider sx={{ my: 2 }} />
             <Box display="flex" justifyContent="space-between" mb={1}>
-              <Typography variant="body1">Subtotal</Typography>
-              <Typography variant="body1" fontWeight="bold">
-                ${total.toFixed(2)}
-              </Typography>
+              <Typography color="text.secondary">Subtotal</Typography>
+              <Typography fontWeight={600}>${total.toFixed(2)}</Typography>
             </Box>
             <Box display="flex" justifyContent="space-between" mb={2}>
-              <Typography variant="body1">Shipping</Typography>
-              <Typography variant="body1">Free</Typography>
+              <Typography color="text.secondary">Shipping</Typography>
+              <Typography color="primary.main" fontWeight={500}>Free</Typography>
             </Box>
             <Divider sx={{ my: 2 }} />
             <Box display="flex" justifyContent="space-between">
-              <Typography variant="h6" fontWeight="bold">
-                Total
-              </Typography>
+              <Typography variant="h6" fontWeight="bold">Total</Typography>
               <Typography variant="h6" fontWeight="bold" color="primary.main">
                 ${total.toFixed(2)}
               </Typography>
