@@ -1,5 +1,5 @@
-import apiClient from './client';
-import type { User } from '../types';
+import apiClient from "./client";
+import type { User } from "../types";
 
 export interface LoginRequest {
   email: string;
@@ -29,7 +29,7 @@ export const AuthService = {
    * Backend sets HttpOnly cookies AND returns tokens in body.
    */
   login: async (credentials: LoginRequest): Promise<AuthTokens> => {
-    const response = await apiClient.post('/login', credentials);
+    const response = await apiClient.post(":8081/login", credentials);
     return response.data;
   },
 
@@ -38,7 +38,7 @@ export const AuthService = {
    * Creates a new user account.
    */
   signup: async (userData: SignupRequest): Promise<void> => {
-    await apiClient.post('/create', userData);
+    await apiClient.post("/create", userData);
   },
 
   /**
@@ -47,12 +47,12 @@ export const AuthService = {
    */
   refreshSession: async (
     accessToken: string,
-    refreshToken: string
+    refreshToken: string,
   ): Promise<AuthTokens> => {
-    const response = await apiClient.post(
-      '/refresh',
-      { access_token: accessToken, refresh_token: refreshToken }
-    );
+    const response = await apiClient.post(":8081/refresh", {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
     return response.data;
   },
 
@@ -61,7 +61,7 @@ export const AuthService = {
    * Fetch user details by email.
    */
   getUserByEmail: async (email: string): Promise<User> => {
-    const response = await apiClient.get('/user', { params: { email } });
+    const response = await apiClient.get(":8081/user", { params: { email } });
     return response.data;
   },
 };

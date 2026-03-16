@@ -1,5 +1,5 @@
-import apiClient from './client';
-import type { Product } from '../types';
+import apiClient from "./client";
+import type { Product } from "../types";
 
 /**
  * Backend: posh-shop-backend on port 8080
@@ -17,14 +17,19 @@ export const ProductService = {
     limit?: number;
     offset?: number;
   }): Promise<Product[]> => {
-    const response = await apiClient.get('/product/search', { params });
+    const response = await apiClient.get(":8082/product/search", { params });
     // Backend returns image field; map to imageUrl for frontend consistency
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return response.data.map((p: any) => ({ ...p, imageUrl: p.image ?? p.imageUrl }));
+    return response.data.map((p: any) => ({
+      ...p,
+      imageUrl: p.image ?? p.imageUrl,
+    }));
   },
 
   getProductById: async (id: string): Promise<Product> => {
-    const response = await apiClient.get('/product/details', { params: { id } });
+    const response = await apiClient.get(":8082/product/details", {
+      params: { id },
+    });
     const p = response.data;
     return { ...p, imageUrl: p.image ?? p.imageUrl };
   },

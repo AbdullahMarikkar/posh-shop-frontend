@@ -7,7 +7,7 @@ export const UserService = {
    * user-service returns the user by email.
    */
   getUserByEmail: async (email: string): Promise<User> => {
-    const response = await apiClient.get("", { params: { email } });
+    const response = await apiClient.get(":8081", { params: { email } });
     return response.data;
   },
 
