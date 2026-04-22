@@ -12,6 +12,28 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
+// Configure dynamic port mapping 
+apiClient.interceptors.request.use((config) => {
+  if (config.url) {
+    const portMatch = config.url.match(/^:(\d+)(\/.*)?$/);
+    if (portMatch) {
+      const port = portMatch[1];
+      const path = portMatch[2] || '';
+      try {
+        const base = new URL(config.baseURL || window.location.origin);
+        base.port = port;
+        config.baseURL = base.toString().replace(/\/$/, "");
+        config.url = path;
+      } catch (e) {
+        // Fallback
+        config.baseURL = `http://localhost:${port}`;
+        config.url = path;
+      }
+    }
+  }
+  return config;
+});
+
 // ─── Response interceptor: handle 401 with token refresh ─────────────────────
 let isRefreshing = false;
 let failedQueue: Array<{

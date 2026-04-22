@@ -17,6 +17,16 @@ export interface User {
   role?: string;
 }
 
+export interface ShippingDetail {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  delivery_address: string;
+  city: string;
+  postal: string;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;

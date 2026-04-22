@@ -11,7 +11,7 @@ import {
   Alert,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { AddShoppingCartRounded, StorefrontRounded } from "@mui/icons-material";
+import { AddShoppingCartRounded } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useCartStore } from "../store/useCartStore";
 import { useProductStore } from "../store/useProductStore";
@@ -20,111 +20,13 @@ import { AdvancedSearch } from "../components/AdvancedSearch";
 import type { Product } from "../types";
 import { ProductService } from "../api/product.service";
 
-// ─── Dummy data (replace with ProductService.searchProducts() call) ───────────
-export const dummyProducts: Product[] = [
-  {
-    id: "1",
-    name: "Classic White T-Shirt",
-    description:
-      "Everyday classic white tee made with 100% premium cotton. Perfectly comfortable all day.",
-    price: 25.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Clothing",
-    brand: "BasicWear",
-    sku: "BW-WT-001",
-  },
-  {
-    id: "2",
-    name: "Denim Jacket",
-    description:
-      "Vintage style denim jacket perfect for any season. Classic styling, durable construction.",
-    price: 89.99,
-    imageUrl:
-      "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Clothing",
-    brand: "UrbanEdge",
-    sku: "UE-DJ-002",
-  },
-  {
-    id: "3",
-    name: "Leather Sneakers",
-    description:
-      "Comfortable and stylish low-top leather sneakers. Ideal for casual and daily wear.",
-    price: 120.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Footwear",
-    brand: "StepStyle",
-    sku: "SS-LS-003",
-  },
-  {
-    id: "4",
-    name: "Minimalist Watch",
-    description:
-      "Elegant minimalist watch with a leather strap — perfect for any occasion.",
-    price: 150.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1524805444758-089113d48a6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Accessories",
-    brand: "TimeCraft",
-    sku: "TC-MW-004",
-  },
-  {
-    id: "5",
-    name: "Canvas Backpack",
-    description:
-      "Spacious and durable canvas backpack with multiple compartments. Perfect for work or travel.",
-    price: 65.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Accessories",
-    brand: "UrbanEdge",
-    sku: "UE-BP-005",
-  },
-  {
-    id: "6",
-    name: "Running Shoes",
-    description:
-      "High-performance running shoes with superior cushioning and breathable mesh upper.",
-    price: 95.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Footwear",
-    brand: "StepStyle",
-    sku: "SS-RS-006",
-  },
-  {
-    id: "7",
-    name: "Slim Fit Chinos",
-    description:
-      "Versatile slim fit chinos crafted from stretch cotton blend. Smart casual essential.",
-    price: 55.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Clothing",
-    brand: "BasicWear",
-    sku: "BW-CH-007",
-  },
-  {
-    id: "8",
-    name: "Leather Wallet",
-    description:
-      "Slim genuine leather bifold wallet with RFID blocking. Fits all your essentials.",
-    price: 40.0,
-    imageUrl:
-      "https://images.unsplash.com/photo-1627123424574-724758594e93?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    category: "Accessories",
-    brand: "TimeCraft",
-    sku: "TC-LW-008",
-  },
-];
+
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 export const Home = () => {
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
-  const { setAllProducts, filteredProducts, filters } = useProductStore();
+  const { allProducts, setAllProducts, filteredProducts, filters } = useProductStore();
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // Fetch products when filters or sort change
@@ -137,26 +39,32 @@ export const Home = () => {
     };
 
     ProductService.searchProducts(params).then(setAllProducts);
-  }, [setAllProducts, filters.key, filters.category, filters.sortBy, filters.sortOrder]);
+  }, [
+    setAllProducts,
+    filters.key,
+    filters.category,
+    filters.sortBy,
+    filters.sortOrder,
+  ]);
 
   // Derive unique categories and brands from ALL products for filter dropdowns
   const categories = useMemo(
     () =>
       [
         ...new Set(
-          dummyProducts.map((p) => p.category).filter(Boolean) as string[],
+          allProducts.map((p) => p.category).filter(Boolean) as string[],
         ),
       ].sort(),
-    [],
+    [allProducts],
   );
   const brands = useMemo(
     () =>
       [
         ...new Set(
-          dummyProducts.map((p) => p.brand).filter(Boolean) as string[],
+          allProducts.map((p) => p.brand).filter(Boolean) as string[],
         ),
       ].sort(),
-    [],
+    [allProducts],
   );
 
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
@@ -174,41 +82,73 @@ export const Home = () => {
 
   return (
     <Box>
-      {/* Hero */}
+      {/* High-Impact Lifestyle Hero */}
       <Box
         sx={{
-          mb: 4,
-          py: 5,
+          mb: 6,
+          mt: 2,
+          py: 12,
           px: 4,
           borderRadius: 4,
-          background: "linear-gradient(135deg, #81A6C6 0%, #AACDDC 100%)",
+          position: "relative",
+          overflow: "hidden",
           color: "#fff",
           textAlign: "center",
+          backgroundImage:
+            "linear-gradient(rgba(27, 46, 69, 0.7), rgba(27, 46, 69, 0.7)), url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          boxShadow: "0 20px 40px rgba(54, 79, 107, 0.15)",
         }}
       >
-        <Box
+        <Typography
+          variant="overline"
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 1.5,
-            mb: 1,
+            letterSpacing: 3,
+            fontWeight: 700,
+            mb: 2,
+            display: "block",
+            color: "secondary.main",
           }}
         >
-          <StorefrontRounded sx={{ fontSize: 36, opacity: 0.9 }} />
-          <Typography variant="h2" component="h1" fontWeight="bold">
-            Posh Shop
-          </Typography>
-        </Box>
+          THE DIGITAL ATELIER
+        </Typography>
         <Typography
-          variant="h6"
-          sx={{ opacity: 0.9, maxWidth: 480, mx: "auto", mb: 4 }}
+          variant="h1"
+          component="h1"
+          fontWeight="800"
+          sx={{ mb: 2, textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}
         >
-          Discover our curated collection of premium quality products.
+          Curated Artifacts
+          <br />
+          For Discerning Collectors
+        </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            opacity: 0.9,
+            maxWidth: 600,
+            mx: "auto",
+            mb: 6,
+            fontWeight: 400,
+            textShadow: "0 1px 5px rgba(0,0,0,0.3)",
+          }}
+        >
+          Discover a gallery-like experience of art, design objects, and premium
+          lifestyle goods.
         </Typography>
 
-        {/* Search bar embedded in hero */}
-        <Box sx={{ maxWidth: 680, mx: "auto" }}>
+        {/* Search bar inside hero */}
+        <Box
+          sx={{
+            maxWidth: 680,
+            mx: "auto",
+            bgcolor: "rgba(255,255,255,0.1)",
+            p: 1,
+            borderRadius: 3,
+            backdropFilter: "blur(10px)",
+          }}
+        >
           <SearchBar
             onAdvancedToggle={() => setAdvancedOpen((o) => !o)}
             isAdvancedOpen={advancedOpen}
@@ -217,12 +157,67 @@ export const Home = () => {
       </Box>
 
       {/* Advanced Search Panel */}
-      <Box sx={{ maxWidth: 680, mx: "auto", mb: 3 }}>
+      <Box sx={{ maxWidth: 680, mx: "auto", mb: 5 }}>
         <AdvancedSearch
           isOpen={advancedOpen}
           categories={categories}
           brands={brands}
         />
+      </Box>
+
+      {/* Curated Portfolio Categories */}
+      <Box sx={{ mb: 6 }}>
+        <Grid container spacing={2}>
+          {["Minimalist", "Audio", "Botanicals", "Footwear"].map((cat) => (
+            <Grid key={cat} size={{ xs: 6, sm: 3 }}>
+              <Box
+                sx={{
+                  bgcolor: "#FFFFFF",
+                  border: "1px solid rgba(54, 79, 107, 0.08)",
+                  borderRadius: 3,
+                  py: 3,
+                  textAlign: "center",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    bgcolor: "secondary.main",
+                    color: "white",
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 10px 20px rgba(63, 193, 201, 0.2)",
+                  },
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight={700}>
+                  {cat}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      {/* Section Title */}
+      <Box
+        sx={{
+          mb: 4,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+        }}
+      >
+        <Typography variant="h3" fontWeight={800} color="primary.main">
+          Trending Artifacts
+        </Typography>
+        <Typography
+          variant="button"
+          sx={{
+            color: "text.secondary",
+            cursor: "pointer",
+            "&:hover": { color: "secondary.main" },
+          }}
+        >
+          View all collections →
+        </Typography>
       </Box>
 
       {/* No results state */}
@@ -240,13 +235,14 @@ export const Home = () => {
             </Button>
           }
         >
-          No products matched your search. Try adjusting your filters.
+          No artifacts matched your curation criteria. Try adjusting your
+          filters.
         </Alert>
       )}
 
-      {/* Product grid */}
-      <Grid container spacing={3}>
-        {filteredProducts.map((product) => (
+      {/* Product grid / Trending Carousel */}
+      <Grid container spacing={4}>
+        {filteredProducts.map((product, idx) => (
           <Grid key={product.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
             <Card
               sx={{
@@ -254,57 +250,79 @@ export const Home = () => {
                 display: "flex",
                 flexDirection: "column",
                 cursor: "pointer",
-                "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: "0 8px 24px rgba(129,116,100,0.15)",
-                },
               }}
               onClick={() => navigate(`/product/${product.id}`)}
+              elevation={0}
             >
-              <CardMedia
-                component="img"
-                height="220"
-                image={product.imageUrl}
-                alt={product.name}
-                sx={{ objectFit: "cover" }}
-              />
-              <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+              <Box sx={{ position: "relative" }}>
+                <CardMedia
+                  component="img"
+                  height="300"
+                  image={product.imageUrl}
+                  alt={product.name}
+                  sx={{
+                    objectFit: "cover",
+                    transition: "transform 0.5s ease",
+                    "&:hover": { transform: "scale(1.05)" },
+                  }}
+                />
+                {idx % 3 === 0 && ( // Just applying "Atelier Pick" badge randomly for visual impact
+                  <Chip
+                    label="Atelier Pick"
+                    size="small"
+                    sx={{
+                      position: "absolute",
+                      top: 16,
+                      left: 16,
+                      bgcolor: "error.main",
+                      color: "white",
+                      fontWeight: 700,
+                    }}
+                  />
+                )}
+              </Box>
+
+              <CardContent sx={{ flexGrow: 1, p: 3 }}>
                 <Box
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
-                    mb: 1,
+                    mb: 1.5,
                   }}
                 >
                   <Typography
-                    variant="h6"
-                    fontWeight={600}
-                    sx={{ lineHeight: 1.3, flex: 1, mr: 1 }}
+                    variant="h5"
+                    fontWeight={700}
+                    sx={{
+                      lineHeight: 1.3,
+                      flex: 1,
+                      mr: 1,
+                      color: "primary.main",
+                    }}
                   >
                     {product.name}
                   </Typography>
-                  <Typography
-                    variant="h6"
-                    color="primary.main"
-                    fontWeight="bold"
-                    sx={{ whiteSpace: "nowrap" }}
-                  >
-                    ${product.price.toFixed(2)}
-                  </Typography>
                 </Box>
 
-                <Box
-                  sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, mb: 1.5 }}
+                <Typography
+                  variant="h6"
+                  color="text.secondary"
+                  fontWeight="600"
+                  sx={{ mb: 2 }}
                 >
+                  Investment: ${product.price.toFixed(2)}
+                </Typography>
+
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
                   {product.category && (
                     <Chip
                       label={product.category}
                       size="small"
                       sx={{
-                        bgcolor: "rgba(170,205,220,0.3)",
-                        color: "#2d4a5e",
-                        fontWeight: 500,
+                        bgcolor: "rgba(63, 193, 201, 0.1)",
+                        color: "secondary.dark",
+                        fontWeight: 600,
                       }}
                     />
                   )}
@@ -314,9 +332,9 @@ export const Home = () => {
                       size="small"
                       variant="outlined"
                       sx={{
-                        borderColor: "#D2C4B4",
+                        borderColor: "rgba(54, 79, 107, 0.2)",
                         color: "text.secondary",
-                        fontWeight: 500,
+                        fontWeight: 600,
                       }}
                     />
                   )}
@@ -330,20 +348,22 @@ export const Home = () => {
                     display: "-webkit-box",
                     WebkitBoxOrient: "vertical",
                     WebkitLineClamp: 2,
+                    lineHeight: 1.6,
                   }}
                 >
                   {product.description}
                 </Typography>
               </CardContent>
-              <CardActions sx={{ p: 2, pt: 0 }}>
+              <CardActions sx={{ p: 3, pt: 0 }}>
                 <Button
                   fullWidth
                   variant="contained"
-                  color="primary"
+                  color="secondary"
+                  sx={{ py: 1.5, fontSize: "1rem" }}
                   startIcon={<AddShoppingCartRounded />}
                   onClick={(e) => handleAddToCart(product, e)}
                 >
-                  Add to Cart
+                  Add to Curated Bag
                 </Button>
               </CardActions>
             </Card>

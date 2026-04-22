@@ -29,7 +29,7 @@ export const AuthService = {
    * Backend sets HttpOnly cookies AND returns tokens in body.
    */
   login: async (credentials: LoginRequest): Promise<AuthTokens> => {
-    const response = await apiClient.post(":8081/login", credentials);
+    const response = await apiClient.post(":8081/user/login", credentials);
     return response.data;
   },
 
