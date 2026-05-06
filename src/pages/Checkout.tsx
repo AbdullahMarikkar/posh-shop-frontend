@@ -10,7 +10,7 @@ import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { PaymentService } from '../api/payment.service';
 import { UserService } from '../api/user.service';
-import type { ShippingDetail } from '../types';
+import type { ShippingDetail, PaymentInstrument } from '../types';
 
 const steps = ['Shipping Details', 'Payment Method', 'Final Review'];
 
@@ -24,6 +24,20 @@ export const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [awxDetails, setAwxDetails] = useState<{clientSecret: string, intentId: string, checkoutId: string} | null>(null);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const intentId = urlParams.get('payment_intent_id');
+    if (intentId) {
+      const savedStep = sessionStorage.getItem('checkout_step');
+      if (savedStep) setActiveStep(Number(savedStep));
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem('checkout_step', activeStep.toString());
+  }, [activeStep]);
 
   // Initialize Airwallex element on detail load
   useEffect(() => {
@@ -124,6 +138,26 @@ export const Checkout = () => {
   const [payment, setPayment] = useState({
     useSaved: 'true', cardName: '', cardNumber: '', expiry: '', cvc: ''
   });
+
+  const [paymentInstrument, setPaymentInstrument] = useState<PaymentInstrument | null>(null);
+  const [isLoadingInstrument, setIsLoadingInstrument] = useState(false);
+  
+  useEffect(() => {
+    if (user?.id) {
+      setIsLoadingInstrument(true);
+      PaymentService.getPaymentInstrument(user.id)
+        .then((data) => {
+          if (data && data.token) {
+            setPaymentInstrument(data);
+            setPayment(p => ({ ...p, useSaved: 'true' }));
+          } else {
+            setPayment(p => ({ ...p, useSaved: 'false' }));
+          }
+        })
+        .catch(console.error)
+        .finally(() => setIsLoadingInstrument(false));
+    }
+  }, [user]);
 
   const handleNext = () => setActiveStep((prev) => prev + 1);
   const handleBack = () => setActiveStep((prev) => prev - 1);
@@ -311,32 +345,60 @@ export const Checkout = () => {
             <Alert icon={<LockOutlined />} severity="success" sx={{ mb: 4, borderRadius: 2, bgcolor: 'rgba(63, 193, 201, 0.1)', color: 'secondary.dark', '& .MuiAlert-icon': { color: 'secondary.main'} }}>
               Payment is secured with 256-bit encryption.
             </Alert>
-            <RadioGroup value={payment.useSaved} onChange={(e) => setPayment({...payment, useSaved: e.target.value})} sx={{ mb: 3 }}>
-              <Card variant="outlined" sx={{ mb: 2, p: 2, borderColor: payment.useSaved === 'true' ? 'primary.main' : 'rgba(54, 79, 107, 0.15)', bgcolor: payment.useSaved === 'true' ? 'rgba(54, 79, 107, 0.02)' : 'transparent' }}>
-                <FormControlLabel value="true" control={<Radio />} label={<Typography fontWeight={600}>Atelier Black Card ending in •••• 4242</Typography>} />
-              </Card>
-              <Card variant="outlined" sx={{ p: 2, borderColor: payment.useSaved === 'false' ? 'primary.main' : 'rgba(54, 79, 107, 0.15)', bgcolor: payment.useSaved === 'false' ? 'rgba(54, 79, 107, 0.02)' : 'transparent' }}>
-                <FormControlLabel value="false" control={<Radio />} label={<Typography fontWeight={600}>Add a new credit or debit card</Typography>} />
-                {payment.useSaved === 'false' && (
-                  <Box sx={{ mt: 3, px: 1 }}>
-                    <Grid container spacing={3}>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField required={payment.useSaved === 'false'} fullWidth label="Cardholder Name" value={payment.cardName} onChange={(e) => setPayment({...payment, cardName: e.target.value})} />
-                      </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <TextField required={payment.useSaved === 'false'} fullWidth label="Card Number" placeholder="**** **** **** ****" value={payment.cardNumber} onChange={(e) => setPayment({...payment, cardNumber: e.target.value})} />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField required={payment.useSaved === 'false'} fullWidth label="Expiry (MM/YY)" value={payment.expiry} onChange={(e) => setPayment({...payment, expiry: e.target.value})} />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField required={payment.useSaved === 'false'} fullWidth label="CVC" value={payment.cvc} onChange={(e) => setPayment({...payment, cvc: e.target.value})} />
-                      </Grid>
-                    </Grid>
-                  </Box>
+            
+            {isLoadingInstrument ? (
+              <Box display="flex" justifyContent="center" py={4}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <RadioGroup value={payment.useSaved} onChange={(e) => setPayment({...payment, useSaved: e.target.value})} sx={{ mb: 3 }}>
+                {paymentInstrument && paymentInstrument.token && (
+                  <Card variant="outlined" sx={{ mb: 2, p: 2, borderColor: payment.useSaved === 'true' ? 'primary.main' : 'rgba(54, 79, 107, 0.15)', bgcolor: payment.useSaved === 'true' ? 'rgba(54, 79, 107, 0.02)' : 'transparent' }}>
+                    <FormControlLabel value="true" control={<Radio />} label={<Typography fontWeight={600}>{paymentInstrument.payment_gateway.toUpperCase()} Card ending in •••• {paymentInstrument.card_last_digits}</Typography>} />
+                  </Card>
                 )}
-              </Card>
-            </RadioGroup>
+                
+                <Card variant="outlined" sx={{ p: 2, borderColor: payment.useSaved === 'false' ? 'primary.main' : 'rgba(54, 79, 107, 0.15)', bgcolor: payment.useSaved === 'false' ? 'rgba(54, 79, 107, 0.02)' : 'transparent' }}>
+                  <FormControlLabel value="false" control={<Radio />} label={<Typography fontWeight={600}>Add a new credit or debit card</Typography>} />
+                  {payment.useSaved === 'false' && (
+                    <Box sx={{ mt: 3, px: 1 }}>
+                       <Button 
+                         variant="outlined" 
+                         color="primary"
+                         onClick={async () => {
+                           if (!user?.id) return;
+                           setIsSubmitting(true);
+                           try {
+                             // Assuming airwallex for now, could be dynamic based on settings
+                             const res = await PaymentService.addPaymentCard(user.id, "airwallex", window.location.origin + "/checkout");
+                             if (res.client_secret && res.payment_id) {
+                               // @ts-ignore
+                               if (window.Airwallex) {
+                                 // @ts-ignore
+                                 window.Airwallex.redirectToCheckout({
+                                   env: import.meta.env.VITE_AIRWALLEX_ENV || 'demo',
+                                   intent_id: res.payment_id,
+                                   client_secret: res.client_secret,
+                                   theme: {
+                                      fonts: [{ family: 'Inter', src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf' }]
+                                   }
+                                 });
+                               }
+                             }
+                           } catch (e) {
+                             console.error("Failed to redirect to hosted payment page", e);
+                           } finally {
+                             setIsSubmitting(false);
+                           }
+                         }}
+                       >
+                         Redirect to Secure Hosted Payment
+                       </Button>
+                    </Box>
+                  )}
+                </Card>
+              </RadioGroup>
+            )}
           </Box>
         );
       case 2:
@@ -368,7 +430,7 @@ export const Checkout = () => {
                     <Typography fontWeight="700">Payment</Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary">
-                    {payment.useSaved === 'true' ? 'Atelier Black Card (•••• 4242)' : `${payment.cardName} (•••• ${payment.cardNumber.slice(-4)})`}
+                    {paymentInstrument && paymentInstrument.token ? `${paymentInstrument.payment_gateway.toUpperCase()} Card (•••• ${paymentInstrument.card_last_digits})` : `New Card Provided`}
                   </Typography>
                 </Grid>
               </Grid>
@@ -430,7 +492,7 @@ export const Checkout = () => {
                 variant="contained"
                 color="secondary"
                 size="large"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (activeStep === 1 && payment.useSaved === 'false')}
                 sx={{ py: 1.5, px: 6, fontSize: '1.05rem' }}
               >
                 {isSubmitting ? <CircularProgress size={24} color="inherit" /> : activeStep === steps.length - 1 ? (awxDetails ? 'Confirm Payment' : 'Acquire Now') : 'Continue'}

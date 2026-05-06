@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import type { PaymentInstrument } from "../types";
 
 export const PaymentService = {
   createOrder: async (checkoutId: string, cartId: string, userId: string, paymentMethod: string, splitCount: number): Promise<any> => {
@@ -36,6 +37,17 @@ export const PaymentService = {
 
   confirmPayment: async (checkoutId: string, paymentIntentId: string): Promise<any> => {
     const response = await apiClient.post(`:8083/api/v1/payment/confirm?checkout_id=${checkoutId}&payment_intent_id=${paymentIntentId}`);
+    return response.data;
+  },
+
+  getPaymentInstrument: async (userId: string): Promise<PaymentInstrument | null> => {
+    const response = await apiClient.get(`:8083/api/v1/payment/instrument/${userId}`);
+    return response.data;
+  },
+
+  addPaymentCard: async (userId: string, gateway: string, returnUrl: string): Promise<{ payment_id: string; client_secret: string; status: string; message: string }> => {
+    const url = `:8083/api/v1/payment/card/add/${userId}?gateway=${gateway}&return_url=${encodeURIComponent(returnUrl)}`;
+    const response = await apiClient.post(url);
     return response.data;
   }
 };

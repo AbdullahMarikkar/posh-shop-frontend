@@ -27,6 +27,17 @@ export interface ShippingDetail {
   postal: string;
 }
 
+export interface PaymentInstrument {
+  id: string;
+  user_id: string;
+  payment_gateway: string;
+  card_last_digits: string;
+  card_holder_name: string;
+  expiry_date: string;
+  is_default: boolean;
+  token: string;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
